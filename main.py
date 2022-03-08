@@ -1,10 +1,12 @@
 import telebot
 import re
 import requests
+from translate import Translator
 
 bot = telebot.TeleBot('5133726676:AAFYkB4pOCGEaPKmXAQ3o3hFW4t8xDsHLj8')
 holiday_url = 'https://holidayapi.com/v1/holidays?pretty&key=c2475528-0e37-4d01-acaf-5192189a7adb&country=RU&language=RU'
 holiday_token = 'c2475528-0e37-4d01-acaf-5192189a7adb'
+
 
 @bot.message_handler(commands=['start', 'help'])
 def welcome(message):
@@ -24,9 +26,19 @@ def start(message):
     elif message.text == '/data':
         bot.send_message(message.from_user.id, 'Введи дату в таком формате: ДД-ММ-ГГГГ')
         bot.register_next_step_handler(message, get_holiday_data)
+    elif message.text == '/translate':
+        bot.send_message(message.from_user.id, 'Введите слово или текст, а я его переведу!')
+        bot.register_next_step_handler(message, translate_user_message)
     else:
         bot.send_message(message.from_user.id, 'Напиши /reg - регистрация'
-                                               ' /data - узнать название праздника')
+                                               ' /data - узнать название праздника'
+                                               ' /translate - перевести текст.')
+
+
+def translate_user_message(message):
+    to_lang = 'en'
+    translator = Translator(to_lang=to_lang, from_lang='ru')
+    bot.send_message(message.from_user.id, translator.translate(message.text))
 
 
 def get_holiday_data(message):

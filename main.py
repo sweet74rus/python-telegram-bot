@@ -1,16 +1,33 @@
 import telebot
 import re
 import requests
-from translate import Translator
+from telebot import types
 
 bot = telebot.TeleBot('5133726676:AAFYkB4pOCGEaPKmXAQ3o3hFW4t8xDsHLj8')
+
 holiday_url = 'https://holidayapi.com/v1/holidays?pretty&key=c2475528-0e37-4d01-acaf-5192189a7adb&country=RU&language=RU'
 holiday_token = 'c2475528-0e37-4d01-acaf-5192189a7adb'
 
 
 @bot.message_handler(commands=['start', 'help'])
-def welcome(message):
-    bot.reply_to(message, 'Привет, меня зовут Боб. Чем я могу помочь?')
+def cmd_start(message):
+    keyboard = types.InlineKeyboardMarkup()
+    button_reg = types.InlineKeyboardButton(text='Регистрация', callback_data='reg')
+    keyboard.add(button_reg)
+    button_holiday = types.InlineKeyboardButton(text='Праздники', callback_data='holiday')
+    keyboard.add(button_holiday)
+    question = 'Привет, меня зовут Боб. Чем я могу помочь?'
+    bot.send_message(message.from_user.id, text=question, reply_markup=keyboard)
+
+
+@bot.callback_query_handler(func=lambda call: True)
+def callback_worker(call):
+    if call.data == 'reg':
+        bot.send_message(call.message.chat.id, 'Как тебя зовут?')
+        bot.register_next_step_handler(call.message, get_name)
+    elif call.data == 'holiday':
+        bot.send_message(call.message.chat.id, 'Введи дату в таком формате: ДД-ММ-ГГГГ')
+        bot.register_next_step_handler(call.message, get_holiday_data)
 
 
 name = ''
@@ -20,25 +37,7 @@ age = 0
 
 @bot.message_handler(content_types=['text'])
 def start(message):
-    if message.text == '/reg':
-        bot.send_message(message.from_user.id, 'Как тебя зовут?')
-        bot.register_next_step_handler(message, get_name)
-    elif message.text == '/data':
-        bot.send_message(message.from_user.id, 'Введи дату в таком формате: ДД-ММ-ГГГГ')
-        bot.register_next_step_handler(message, get_holiday_data)
-    elif message.text == '/translate':
-        bot.send_message(message.from_user.id, 'Введите слово или текст, а я его переведу!')
-        bot.register_next_step_handler(message, translate_user_message)
-    else:
-        bot.send_message(message.from_user.id, 'Напиши /reg - регистрация'
-                                               ' /data - узнать название праздника'
-                                               ' /translate - перевести текст.')
-
-
-def translate_user_message(message):
-    to_lang = 'en'
-    translator = Translator(to_lang=to_lang, from_lang='ru')
-    bot.send_message(message.from_user.id, translator.translate(message.text))
+    bot.send_message(message.from_user.id, 'Введите /start.')
 
 
 def get_holiday_data(message):
@@ -47,7 +46,7 @@ def get_holiday_data(message):
         holiday_data = requests.get(holiday_url + f'&year=2021&month={a[2]}&day={a[1]}').json()
         bot.send_message(message.from_user.id, holiday_data['holidays'][0]['name'])
     except Exception:
-        bot.send_message(message.from_user.id, 'В этот день нет праздника:(')
+        bot.send_message(message.from_user.id, 'В этот день нет праздника :(')
 
 
 def get_name(message):
@@ -74,7 +73,7 @@ def get_age(message):
         word = get_true_age_word()
         bot.send_message(message.from_user.id, f'Тебе {age} {word}, '
                                                f'тебя зовут {name}, '
-                                               f' твоя фамилия {surname}')
+                                               f' твоя фамилия {surname}?')
 
 
 def get_true_age_word():

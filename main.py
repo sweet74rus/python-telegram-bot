@@ -7,7 +7,7 @@ from telebot import types
 conn = sqlite3.connect('Database/DeliveryDB.db', check_same_thread=False)
 cursor = conn.cursor()
 
-bot = telebot.TeleBot('5133726676:AAFYkB4pOCGEaPKmXAQ3o3hFW4t8xDsHLj8')
+bot = telebot.TeleBot('TOKEN')
 
 holiday_url = 'https://holidayapi.com/v1/holidays?pretty&key=c2475528-0e37-4d01-acaf-5192189a7adb&country=RU&language=RU'
 holiday_token = 'c2475528-0e37-4d01-acaf-5192189a7adb'
